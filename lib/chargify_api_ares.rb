@@ -50,7 +50,7 @@ end
 module Chargify
   
   class << self
-    attr_accessor :subdomain, :api_key, :site, :format, :timeout
+    attr_accessor :subdomain, :api_key, :site, :format, :timeout, :site_shared_key
     
     def configure
       yield self
@@ -63,6 +63,7 @@ module Chargify
 
       Base.site                     = site
       Subscription::Component.site  = site + "/subscriptions/:subscription_id"
+      HostedSite.shared_key         = site_shared_key
     end
   end
   
@@ -74,6 +75,21 @@ module Chargify
     def to_xml(options = {})
       options.merge!(:dasherize => false)
       super
+    end
+  end
+
+  class HostedSite
+    class << self
+      attr_accessor :shared_key
+    end
+
+    def self.token(shortname, subscription_id)
+      message = [shortname, subscription_id, shared_key].join("--")
+      Digest::SHA1.hexdigest(message)[0..9]
+    end
+    def self.update_payment_url(subscription_id)
+      token = self.token("update_payment", subscription_id)
+      Base.site.to_s + "/update_payment/#{subscription_id}/#{token}"
     end
   end
   
