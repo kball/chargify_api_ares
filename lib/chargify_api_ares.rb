@@ -87,10 +87,16 @@ module Chargify
       message = [shortname, subscription_id, shared_key].join("--")
       Digest::SHA1.hexdigest(message)[0..9]
     end
+
     def self.update_payment_url(subscription_id)
       token = self.token("update_payment", subscription_id)
       Base.site.to_s + "/update_payment/#{subscription_id}/#{token}"
     end
+
+    def self.signup_url(product_id)
+      Base.site.to_s + "/h/#{product_id}/subscriptions/new"
+    end
+
   end
   
   class Site < Base
@@ -180,6 +186,10 @@ module Chargify
   class Product < Base
     def self.find_by_handle(handle)
       Product.new get(:lookup, :handle => handle)
+    end
+
+    def signup_url
+      HostedSite.signup_url(self.id)
     end
     
     protected
