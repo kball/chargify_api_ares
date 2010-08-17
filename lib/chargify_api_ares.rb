@@ -180,6 +180,22 @@ module Chargify
     def transactions()
       Transaction.find(:all, :params =>{:subscription_id => self.id})
     end
+
+    STATE_CATEGORIES = {:live => [:trialing, :assessing, :active],
+                        :problem => [:soft_failure, :past_due],
+                        :end_of_life => [:canceled, :expired, :suspended]}
+
+    STATE_CATEGORY_LOOKUP = {}
+
+    STATE_CATEGORIES.each do |cat, states|
+      states.each do |state|
+        STATE_CATEGORY_LOOKUP[state] = cat
+      end
+    end
+
+    def state_category
+      STATE_CATEGORY_LOOKUP[self.state.to_sym]
+    end
     
     class Component < Base
       # All Subscription Components are considered already existing records, but the id isn't used
