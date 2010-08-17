@@ -93,8 +93,14 @@ module Chargify
       Base.site.to_s + "/update_payment/#{subscription_id}/#{token}"
     end
 
-    def self.signup_url(product_id)
-      Base.site.to_s + "/h/#{product_id}/subscriptions/new"
+    def self.signup_url(product_id, opts = {})
+      params = if opts.empty?
+        ""
+      else
+        "?" + opts.map {|k, v| "#{k}=#{v}"}.join("&")
+      end
+
+      Base.site.to_s + "/h/#{product_id}/subscriptions/new#{params}"
     end
 
   end
@@ -188,8 +194,8 @@ module Chargify
       Product.new get(:lookup, :handle => handle)
     end
 
-    def signup_url
-      HostedSite.signup_url(self.id)
+    def signup_url(opts = {})
+      HostedSite.signup_url(self.id, opts)
     end
     
     protected
